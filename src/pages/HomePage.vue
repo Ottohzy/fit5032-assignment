@@ -1,0 +1,74 @@
+<template>
+  <div class="container mt-4">
+
+    <!-- Top Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold">NFP Community Sports Platform</h2>
+      <div>
+        <router-link to="/signin" class="btn btn-outline-primary me-2">Sign In</router-link>
+        <router-link to="/signup" class="btn btn-primary">Sign Up</router-link>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons to 7 Pages -->
+    <div class="row">
+      <div
+        class="col-12 col-sm-6 col-lg-4 mb-3"
+        v-for="page in pages"
+        :key="page.route"
+      >
+        <router-link
+          class="btn btn-secondary w-100 py-3"
+          :to="page.route"
+        >
+          {{ page.label }}
+        </router-link>
+      </div>
+    </div>
+
+    <!-- Dynamic Data Display: Coaches -->
+    <div class="mt-5">
+      <h4>Coach Team </h4>
+      <ul class="list-group">
+        <li
+          class="list-group-item d-flex justify-content-between align-items-center"
+          v-for="coach in coaches"
+          :key="coach.name"
+        >
+          <span>{{ coach.name }}</span>
+          <span class="badge bg-primary rounded-pill">{{ coach.experience }}</span>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+
+// 7 navigational pages
+const pages = [
+  { label: 'About Us', route: '/about' },
+  { label: 'Basketball Program', route: '/basketball' },
+  { label: 'Coach Dashboard', route: '/coach' },
+  { label: 'Community Engagement', route: '/community' },
+  { label: 'Health Resources', route: '/health' },
+  { label: 'Participant Zone', route: '/participant' },
+  { label: 'Contact Us', route: '/contact' }
+]
+
+// Dynamic coach data
+const coaches = ref([])
+
+onMounted(async () => {
+  try {
+    const res = await fetch('/src/data/coaches.json')
+    const data = await res.json()
+    coaches.value = data
+  } catch (error) {
+    console.error('Failed to load coaches:', error)
+  }
+})
+</script>
+
