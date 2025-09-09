@@ -25,10 +25,13 @@
           type="email"
           class="form-control"
           id="email"
-          :class="{ 'is-invalid': submitted && !isValidEmail(form.email) }"
+          :class="{ 'is-invalid': submitted && (!isValidEmail(form.email) || emailExists) }"
           required
         />
-        <div class="invalid-feedback">Please enter a valid email address.</div>
+        <div class="invalid-feedback">
+          <span v-if="emailExists">Email already registered.</span>
+          <span v-else>Please enter a valid email address.</span>
+        </div>
       </div>
 
       <!-- Password -->
@@ -89,6 +92,7 @@ const form = reactive({
 
 const submitted = ref(false)
 const success = ref(false)
+const emailExists = ref(false)
 
 // Email validation
 function isValidEmail(email) {
@@ -111,6 +115,15 @@ function passwordsMatch() {
 // Form submission handler
 function handleSubmit() {
   submitted.value = true
+  emailExists.value = false
+
+  const users = JSON.parse(localStorage.getItem('users')) || []
+
+  // Check for existing email
+  if (users.some((user) => user.email === form.email)) {
+    emailExists.value = true
+    return
+  }
 
   if (
     form.name &&
@@ -118,17 +131,15 @@ function handleSubmit() {
     isValidPassword(form.password) &&
     passwordsMatch()
   ) {
-    success.value = true
-
-    // Save user to localStorage
-    const userData = {
+    // Store new user
+    users.push({
       name: form.name,
       email: form.email,
       password: form.password
-    }
+    })
+    localStorage.setItem('users', JSON.stringify(users))
 
-
-    localStorage.setItem('registeredUser', JSON.stringify(userData))
+    success.value = true
 
     // Clear form
     setTimeout(() => {
@@ -147,5 +158,4 @@ function handleSubmit() {
     success.value = false
   }
 }
-
 </script>

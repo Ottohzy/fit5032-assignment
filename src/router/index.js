@@ -10,6 +10,10 @@ import CommunityPage from '../pages/CommunityPage.vue'
 import ContactUsPage from '../pages/ContactUsPage.vue'
 import HealthResourcesPage from '../pages/HealthResourcesPage.vue'
 import ParticipantZonePage from '../pages/ParticipantZonePage.vue'
+import SignInPage from '../pages/SignInPage.vue'
+
+
+
 
 const routes = [
   { path: '/', component: HomePage },
@@ -21,6 +25,7 @@ const routes = [
   { path: '/contact', component: ContactUsPage },
   { path: '/health', component: HealthResourcesPage },
   { path: '/participant', component: ParticipantZonePage },
+  { path: '/signin', name: 'SignIn', component: SignInPage },
 ]
 
 const router = createRouter({
