@@ -3,6 +3,23 @@
     <h2 class="mb-4">Sign Up</h2>
 
     <form @submit.prevent="handleSubmit" novalidate>
+      <!-- Role -->
+      <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <select
+          v-model="form.role"
+          class="form-select"
+          id="role"
+          :class="{ 'is-invalid': submitted && !form.role }"
+          required
+        >
+          <option disabled value="">Select a role</option>
+          <option>User</option>
+          <option>Coach</option>
+        </select>
+        <div class="invalid-feedback">Role is required.</div>
+      </div>
+
       <!-- Full Name -->
       <div class="mb-3">
         <label for="name" class="form-label">Full Name</label>
@@ -84,6 +101,7 @@
 import { reactive, ref } from 'vue'
 
 const form = reactive({
+  role: '',
   name: '',
   email: '',
   password: '',
@@ -126,6 +144,7 @@ function handleSubmit() {
   }
 
   if (
+    form.role &&
     form.name &&
     isValidEmail(form.email) &&
     isValidPassword(form.password) &&
@@ -133,6 +152,7 @@ function handleSubmit() {
   ) {
     // Store new user
     users.push({
+      role: form.role,
       name: form.name,
       email: form.email,
       password: form.password
@@ -143,6 +163,7 @@ function handleSubmit() {
 
     // Clear form
     setTimeout(() => {
+      form.role = ''
       form.name = ''
       form.email = ''
       form.password = ''

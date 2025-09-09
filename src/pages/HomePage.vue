@@ -3,10 +3,10 @@
 
     <!-- Top Navigation -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold">NFP Community Sports Platform</h2>
+      <h2 class="fw-bold">NFP Community Basketball Platform</h2>
       <div>
         <template v-if="currentUser">
-          <span class="me-3 fw-semibold">Welcome, {{ currentUser.name }}</span>
+          <span class="me-3 fw-semibold">Welcome, {{ currentUser.name }} ({{ currentUser.role }})</span>
           <button class="btn btn-outline-danger" @click="logout">Logout</button>
         </template>
         <template v-else>
