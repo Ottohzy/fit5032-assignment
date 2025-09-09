@@ -5,10 +5,17 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="fw-bold">NFP Community Sports Platform</h2>
       <div>
-        <router-link to="/signin" class="btn btn-outline-primary me-2">Sign In</router-link>
-        <router-link to="/signup" class="btn btn-primary">Sign Up</router-link>
+        <template v-if="currentUser">
+          <span class="me-3 fw-semibold">Welcome, {{ currentUser.name }}</span>
+          <button class="btn btn-outline-danger" @click="logout">Logout</button>
+        </template>
+        <template v-else>
+          <router-link to="/signin" class="btn btn-outline-primary me-2">Sign In</router-link>
+          <router-link to="/signup" class="btn btn-primary">Sign Up</router-link>
+        </template>
       </div>
     </div>
+
 
     <!-- Navigation Buttons to 7 Pages -->
     <div class="row">
@@ -46,6 +53,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 // 7 navigational pages
 const pages = [
@@ -61,6 +69,10 @@ const pages = [
 // Dynamic coach data
 const coaches = ref([])
 
+// Current user
+const currentUser = ref(null)
+const router = useRouter()
+
 onMounted(async () => {
   try {
     const res = await fetch('/src/data/coaches.json')
@@ -69,6 +81,19 @@ onMounted(async () => {
   } catch (error) {
     console.error('Failed to load coaches:', error)
   }
+
+  // Load current user
+  const stored = localStorage.getItem('currentUser')
+  if (stored) {
+    currentUser.value = JSON.parse(stored)
+  }
 })
+
+//Logout function
+function logout(){
+  localStorage.removeItem('currentUser')
+  currentUser.value = null
+  router.push('/')
+}
 </script>
 
