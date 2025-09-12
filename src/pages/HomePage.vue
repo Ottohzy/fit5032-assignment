@@ -42,7 +42,15 @@
           v-for="coach in coaches"
           :key="coach.name"
         >
-          <span>{{ coach.name }}</span>
+          <div>
+            <strong>{{ coach.name }}</strong>
+            <div v-if="getAverageRating(coach.name)">
+              ⭐ {{ getAverageRating(coach.name) }} / 5
+            </div>
+            <div v-else class="text-muted">
+              No ratings yet
+            </div>
+          </div>
           <span class="badge bg-primary rounded-pill">{{ coach.experience }}</span>
         </li>
       </ul>
@@ -73,6 +81,15 @@ const coaches = ref([])
 const currentUser = ref(null)
 const router = useRouter()
 
+const coachRatings = ref({})
+
+function getAverageRating(coachName){
+  const ratings = coachRatings.value[coachName] || []
+  if (ratings.length === 0) return null
+  const sum = ratings.reduce((a,b) => a + b, 0)
+  return (sum / ratings.length).toFixed(1)
+}
+
 onMounted(async () => {
   try {
     const res = await fetch('/src/data/coaches.json')
@@ -87,6 +104,11 @@ onMounted(async () => {
   if (stored) {
     currentUser.value = JSON.parse(stored)
   }
+
+   const storedRatings = localStorage.getItem('coachRatings')
+  if (storedRatings) {
+    coachRatings.value = JSON.parse(storedRatings)
+  }
 })
 
 //Logout function
@@ -96,4 +118,6 @@ function logout(){
   router.push('/')
 }
 </script>
+
+
 
