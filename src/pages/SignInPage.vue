@@ -38,6 +38,18 @@
 
       <!-- Submit Button -->
       <button type="submit" class="btn btn-primary">Login</button>
+
+      <!-- Divider -->
+      <hr class="my-4" />
+
+      <!-- Google Login -->
+      <button
+        type="button"
+        class="btn btn-outline-danger w-100"
+        @click="handleGoogleLogin"
+      >
+        Sign in with Google
+      </button>
     </form>
 
     <!-- Success Message -->
@@ -50,6 +62,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { auth, provider } from '@/firebase'
+import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
 
 const email = ref('')
 const password = ref('')
@@ -63,29 +77,70 @@ function isValidEmail(email) {
   return re.test(email)
 }
 
-function handleLogin() {
+// Firebase Auth login
+async function handleLogin() {
   submitted.value = true
   error.value = ''
   success.value = false
 
-  if (!isValidEmail(email.value) || !password.value) {
-    return
-  }
+  if (!isValidEmail(email.value) || !password.value) return
 
-  // get rigistered user from localStorage
-  const users = JSON.parse(localStorage.getItem('users')) || []
-  const user = users.find(
-    (u) => u.email === email.value && u.password === password.value
-  )
-
-  if (user) {
+  try {
+    await signInWithEmailAndPassword(auth, email.value, password.value)
     success.value = true
-    localStorage.setItem('currentUser', JSON.stringify(user))
+
+
+    const currentUser = auth.currentUser
+    localStorage.setItem(
+      'currentUser',
+      JSON.stringify({
+        name: currentUser.displayName || currentUser.email,
+        email: currentUser.email,
+        role: 'User'
+      })
+    )
+
     setTimeout(() => {
       router.push('/')
     }, 1000)
-  } else {
-    error.value = 'Incorrect email or password.'
+  } catch (err) {
+    console.error(err)
+    if (err.code === 'auth/user-not-found') {
+      error.value = 'No user found with this email.'
+    } else if (err.code === 'auth/wrong-password') {
+      error.value = 'Incorrect password.'
+    } else {
+      error.value = err.message
+    }
+  }
+}
+
+// Google login
+async function handleGoogleLogin() {
+  try {
+    const result = await signInWithPopup(auth, provider)
+    const user = result.user
+    localStorage.setItem('currentUser', JSON.stringify({
+      name: user.displayName,
+      email: user.email,
+      role: 'User'
+    }))
+    success.value = true
+    router.push('/')
+  } catch (err) {
+    console.error('Google sign-in error:', err.code, err.message, err.customData)
+    // error massage
+    if (err.code === 'auth/operation-not-allowed') {
+      error.value = 'Google Sign-in is not enabled in Firebase.'
+    } else if (err.code === 'auth/unauthorized-domain') {
+      error.value = 'Current domain is not authorized in Firebase.'
+    } else if (err.code === 'auth/popup-blocked') {
+      error.value = 'Popup was blocked by the browser.'
+    } else if (err.code === 'auth/popup-closed-by-user') {
+      error.value = 'Popup was closed before completing the sign in.'
+    } else {
+      error.value = `${err.code}: ${err.message}`
+    }
   }
 }
 </script>

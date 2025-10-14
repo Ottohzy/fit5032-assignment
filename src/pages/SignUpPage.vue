@@ -42,13 +42,10 @@
           type="email"
           class="form-control"
           id="email"
-          :class="{ 'is-invalid': submitted && (!isValidEmail(form.email) || emailExists) }"
+          :class="{ 'is-invalid': submitted && !isValidEmail(form.email) }"
           required
         />
-        <div class="invalid-feedback">
-          <span v-if="emailExists">Email already registered.</span>
-          <span v-else>Please enter a valid email address.</span>
-        </div>
+        <div class="invalid-feedback">Please enter a valid email address.</div>
       </div>
 
       <!-- Password -->
@@ -86,19 +83,27 @@
         <div class="invalid-feedback">Passwords do not match.</div>
       </div>
 
+      <!-- Error Message -->
+      <div v-if="error" class="alert alert-danger">
+        {{ error }}
+      </div>
+
       <!-- Submit Button -->
-      <button type="submit" class="btn btn-primary">Register</button>
+      <button type="submit" class="btn btn-primary w-100">Register</button>
     </form>
 
     <!-- Success Message -->
     <div v-if="success" class="alert alert-success mt-4">
-      Registration successful!
+      Registration successful! Redirecting...
     </div>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { auth } from '@/firebase'
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
 
 const form = reactive({
   role: '',
@@ -110,73 +115,74 @@ const form = reactive({
 
 const submitted = ref(false)
 const success = ref(false)
-const emailExists = ref(false)
+const error = ref('')
+const router = useRouter()
 
-// Email validation
 function isValidEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return re.test(email)
 }
 
-// Password strength validation
 function isValidPassword(password) {
   const hasLetter = /[A-Za-z]/.test(password)
   const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password)
   return password.length >= 8 && hasLetter && hasSpecial
 }
 
-// Confirm password match
 function passwordsMatch() {
   return form.password === form.confirmPassword
 }
 
-// Form submission handler
-function handleSubmit() {
+async function handleSubmit() {
   submitted.value = true
-  emailExists.value = false
+  error.value = ''
+  success.value = false
 
-  const users = JSON.parse(localStorage.getItem('users')) || []
-
-  // Check for existing email
-  if (users.some((user) => user.email === form.email)) {
-    emailExists.value = true
+  // Validate before submitting
+  if (
+    !form.role ||
+    !form.name ||
+    !isValidEmail(form.email) ||
+    !isValidPassword(form.password) ||
+    !passwordsMatch()
+  ) {
     return
   }
 
-  if (
-    form.role &&
-    form.name &&
-    isValidEmail(form.email) &&
-    isValidPassword(form.password) &&
-    passwordsMatch()
-  ) {
-    // Store new user
-    users.push({
-      role: form.role,
-      name: form.name,
-      email: form.email,
-      password: form.password
-    })
-    localStorage.setItem('users', JSON.stringify(users))
+  try {
+    // Create user in Firebase Auth
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      form.email,
+      form.password
+    )
+
+    // Update display name
+    await updateProfile(userCredential.user, { displayName: form.name })
+
+    // Save role and user info locally
+    localStorage.setItem(
+      'currentUser',
+      JSON.stringify({
+        name: form.name,
+        email: form.email,
+        role: form.role
+      })
+    )
 
     success.value = true
 
-    // Clear form
+    // Redirect to home or login
     setTimeout(() => {
-      form.role = ''
-      form.name = ''
-      form.email = ''
-      form.password = ''
-      form.confirmPassword = ''
-      submitted.value = false
-    }, 300)
-
-    // Hide success message
-    setTimeout(() => {
-      success.value = false
-    }, 3000)
-  } else {
-    success.value = false
+      router.push('/signin')
+    }, 2000)
+  } catch (err) {
+    console.error(err)
+    if (err.code === 'auth/email-already-in-use') {
+      error.value = 'Email already registered.'
+    } else {
+      error.value = err.message
+    }
   }
 }
 </script>
