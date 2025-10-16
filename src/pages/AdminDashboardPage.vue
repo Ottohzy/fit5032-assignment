@@ -19,7 +19,7 @@
     <div class="card shadow-sm mb-4">
       <div class="card-body">
         <h5 class="card-title">Users by Role (Pie)</h5>
-        <!-- 固定高度容器，防止尺寸逐次放大 -->
+
         <div class="chart-box">
           <canvas ref="pieCanvas" aria-label="Pie chart of users by role" role="img"></canvas>
         </div>
@@ -84,11 +84,11 @@ async function drawPie(counts) {
   const ctx = el.getContext('2d')
   if (!ctx) return
 
-  // ✅ 彻底销毁旧实例，避免累积监听与尺寸
+
   Chart.getChart(el)?.destroy()
   if (pieChart) { pieChart.destroy(); pieChart = null }
 
-  // ✅ 用父容器的像素尺寸重置 canvas（防止“越变越大”）
+
   const parent = el.parentElement
   const w = parent?.clientWidth || 600
   const h = parent?.clientHeight || 320
@@ -113,7 +113,7 @@ async function drawPie(counts) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false, // 尺寸交给 .chart-box 控制
+      maintainAspectRatio: false,
       animation: false,
       resizeDelay: 120,
       plugins: { legend: { position: 'bottom' } }
@@ -148,12 +148,12 @@ onMounted(async () => {
   latest.value = list.slice(-10).reverse()
   await drawPie(counts)
 
-  // 可选：窗口变化时只触发当前实例 resize（不重新 new）
+
   window.addEventListener('resize', handleResize)
 })
 
 function handleResize() {
-  // 让实例自适应父容器，不重新创建
+
   pieChart?.resize()
 }
 
@@ -164,7 +164,7 @@ onBeforeUnmount(() => {
   pieChart = null
 })
 
-// 开发期 HMR：热更新时清理
+
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     window.removeEventListener('resize', handleResize)
@@ -178,7 +178,7 @@ if (import.meta.hot) {
 <style scoped>
 .chart-box {
   position: relative;
-  height: 320px;      /* 固定高度，防止逐次增大 */
+  height: 320px;
   max-height: 320px;
   width: 100%;
 }
