@@ -11,6 +11,9 @@ import ContactUsPage from '../pages/ContactUsPage.vue'
 import HealthResourcesPage from '../pages/HealthResourcesPage.vue'
 import ParticipantZonePage from '../pages/ParticipantZonePage.vue'
 import SignInPage from '../pages/SignInPage.vue'
+import DataTablesPage from '../pages/DataTablesPage.vue'
+import MapPage from '../pages/MapPage.vue'
+import AdminDashboardPage from '../pages/AdminDashboardPage.vue'
 
 
 
@@ -26,6 +29,10 @@ const routes = [
   { path: '/health', component: HealthResourcesPage },
   { path: '/participant', component: ParticipantZonePage },
   { path: '/signin', name: 'SignIn', component: SignInPage },
+  { path: '/tables', component: DataTablesPage },
+  { path: '/map', component: MapPage },
+  { path: '/admin', component: AdminDashboardPage }
+
 ]
 
 const router = createRouter({

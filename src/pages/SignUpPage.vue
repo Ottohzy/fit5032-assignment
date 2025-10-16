@@ -16,6 +16,8 @@
           <option disabled value="">Select a role</option>
           <option>User</option>
           <option>Coach</option>
+          <!-- ✅ 新增 Admin 角色 -->
+          <option>Admin</option>
         </select>
         <div class="invalid-feedback">Role is required.</div>
       </div>
@@ -83,16 +85,12 @@
         <div class="invalid-feedback">Passwords do not match.</div>
       </div>
 
-      <!-- Error Message -->
-      <div v-if="error" class="alert alert-danger">
-        {{ error }}
-      </div>
+      <!-- Error -->
+      <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-      <!-- Submit Button -->
       <button type="submit" class="btn btn-primary w-100">Register</button>
     </form>
 
-    <!-- Success Message -->
     <div v-if="success" class="alert alert-success mt-4">
       Registration successful! Redirecting...
     </div>
@@ -104,6 +102,10 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '@/firebase'
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+
+/* ✅ Firestore：写入用户资料 */
+import { db } from '@/firebase'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 const form = reactive({
   role: '',
@@ -122,13 +124,11 @@ function isValidEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return re.test(email)
 }
-
 function isValidPassword(password) {
   const hasLetter = /[A-Za-z]/.test(password)
   const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password)
   return password.length >= 8 && hasLetter && hasSpecial
 }
-
 function passwordsMatch() {
   return form.password === form.confirmPassword
 }
@@ -138,7 +138,6 @@ async function handleSubmit() {
   error.value = ''
   success.value = false
 
-  // Validate before submitting
   if (
     !form.role ||
     !form.name ||
@@ -150,20 +149,24 @@ async function handleSubmit() {
   }
 
   try {
-    // Create user in Firebase Auth
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      form.email,
-      form.password
-    )
+    // 1) Firebase Auth 创建账号
+    const cred = await createUserWithEmailAndPassword(auth, form.email, form.password)
+    await updateProfile(cred.user, { displayName: form.name })
 
-    // Update display name
-    await updateProfile(userCredential.user, { displayName: form.name })
+    // 2) 写入 Firestore（users 集合，文档 id 用 uid 更稳）
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      uid: cred.user.uid,
+      name: form.name,
+      email: form.email,
+      role: form.role,            // 'User' | 'Coach' | 'Admin'
+      createdAt: serverTimestamp()
+    })
 
-    // Save role and user info locally
+    // 3) 本地存一份（便于前端显示）
     localStorage.setItem(
       'currentUser',
       JSON.stringify({
+        uid: cred.user.uid,
         name: form.name,
         email: form.email,
         role: form.role
@@ -172,17 +175,20 @@ async function handleSubmit() {
 
     success.value = true
 
-    // Redirect to home or login
+    // 4) 重定向：如果是 Admin，可直接去 /admin，否则去 /signin
     setTimeout(() => {
-      router.push('/signin')
-    }, 2000)
+      if (form.role === 'Admin') {
+        router.push('/admin')
+      } else {
+        router.push('/signin')
+      }
+    }, 1200)
   } catch (err) {
     console.error(err)
-    if (err.code === 'auth/email-already-in-use') {
-      error.value = 'Email already registered.'
-    } else {
-      error.value = err.message
-    }
+    error.value =
+      err?.code === 'auth/email-already-in-use'
+        ? 'Email already registered.'
+        : err?.message || 'Registration failed.'
   }
 }
 </script>

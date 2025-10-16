@@ -1,0 +1,5 @@
+[
+  { "name": "Alice Chen", "age": 15, "team": "U16", "email": "alice@example.com" },
+  { "name": "Bob Li", "age": 16, "team": "U18", "email": "bob@example.com" },
+  { "name": "Carlos Wu", "age": 17, "team": "U18", "email": "carlos@example.com" }
+]

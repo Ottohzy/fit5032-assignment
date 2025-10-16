@@ -71,7 +71,12 @@ const pages = [
   { label: 'Community Engagement', route: '/community' },
   { label: 'Health Resources', route: '/health' },
   { label: 'Participant Zone', route: '/participant' },
-  { label: 'Contact Us', route: '/contact' }
+  { label: 'Contact Us', route: '/contact' },
+  { label: 'Interactive Tables', route: '/tables' },
+  { label: 'Map & Route', route: '/map' },
+  { label: 'Admin Dashboard', route: '/admin' }
+
+
 ]
 
 // Dynamic coach data

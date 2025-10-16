@@ -35,7 +35,7 @@
 <script setup>
 import { ref } from 'vue'
 import { getFunctions, httpsCallable } from 'firebase/functions'
-import { app } from '../firebase'      // ✅ 相对路径
+import { app } from '../firebase'
 
 const functions = getFunctions(app)
 const callSend = httpsCallable(functions, 'sendEmailWithAttachment')
@@ -64,7 +64,7 @@ function onFileChange(e) {
   const reader = new FileReader()
   reader.onload = () => {
     const dataUrl = String(reader.result || '')
-    fileBase64.value = dataUrl.split(',')[1] || '' // 纯 base64
+    fileBase64.value = dataUrl.split(',')[1] || ''
   }
   reader.readAsDataURL(f)
 }
